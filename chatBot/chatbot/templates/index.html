@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Django Groq Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
+        form {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex-grow: 1;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Django Groq Chatbot</h1>
+    
+    <div class="chat-container">
+        <h2>Recent Chats</h2>
+        {% for message in messages %}
+            <div class="message user-message">
+                <strong>You:</strong> {{ message.user_message }}
+                <div class="timestamp">{{ message.created_at }}</div>
+            </div>
+            <div class="message bot-message">
+                <strong>Bot:</strong> {{ message.bot_response }}
+            </div>
+        {% empty %}
+            <p>No messages yet. Start a conversation!</p>
+        {% endfor %}
+    </div>
+    
+    <h2>Send a Message</h2>
+    <form id="chatForm">
+        <input type="text" id="userMessage" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+    
+    <script>
+        const chatForm = document.getElementById('chatForm');
+        
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = document.getElementById('userMessage').value;
+            
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ user_message: userMessage })
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || 'Something went wrong'}`);
+                }
+            } catch (error) {
+                alert('Error sending message');
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
